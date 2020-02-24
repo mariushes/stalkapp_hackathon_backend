@@ -23,7 +23,7 @@ app.post('/api/photo', cors(), function (req, res) {
 });
 
 
-app.get('/api/:user_name', cors(), function (req, res) {
+app.get('/api/search/:user_name', cors(), function (req, res) {
     try {
         search_instagram(req.params.user_name).then(function (profile_url) {
             get_instagram_pictures(profile_url).then(function (instagram_data) {
