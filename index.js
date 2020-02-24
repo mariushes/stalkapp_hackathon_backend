@@ -1,30 +1,39 @@
 const express = require('express');
-const app = express();
-
 const https = require("https");
 const bodyParser = require('body-parser');
+const cors = require("cors");
 
+const app = express();
+app.use(bodyParser.json({extended: true}));
 
-app.use(bodyParser.json({ extended: true }));
-
-app.post('/api/photo', function (req, res) {
-    result = {};
-    image_recognition(req.body.photo_url).then(function (data) {
-        object_in_image = data.responses[0].labelAnnotations[0].description;
-        wikipedia(object_in_image).then(function (data) {
-            result["wikipedia"] = data;
-            res.send(JSON.stringify(result));
-        })
-    });
+app.post('/api/photo', cors(), function (req, res) {
+    try {
+        result = {};
+        image_recognition(req.body.photo_url).then(function (data) {
+            object_in_image = data.responses[0].labelAnnotations[0].description;
+            wikipedia(object_in_image).then(function (data) {
+                result["wikipedia"] = data;
+                res.send(JSON.stringify(result));
+            })
+        });
+    } catch (e) {
+        res.status(500);
+        res.send(e);
+    }
 });
 
 
-app.get('/api/:user_name', function (req, res) {
-    search_instagram(req.params.user_name).then(function (profile_url) {
-        get_instagram_pictures(profile_url).then(function (instagram_data) {
-            res.send(JSON.stringify({"result": instagram_data}));
-        })
-    });
+app.get('/api/:user_name', cors(), function (req, res) {
+    try {
+        search_instagram(req.params.user_name).then(function (profile_url) {
+            get_instagram_pictures(profile_url).then(function (instagram_data) {
+                res.send(JSON.stringify({"result": instagram_data}));
+            })
+        });
+    } catch (e) {
+        res.status(500);
+        res.send(e);
+    }
 });
 
 function get_instagram_pictures(profile_url) {
@@ -59,9 +68,14 @@ function search_instagram(username) {
             http_response.on("end", function (data) {
 
                 const username_response = JSON.parse(body);
-                userid = username_response.users[0].user.username;
-                profile_url = 'https://www.instagram.com/' + userid + '/?__a=1';
-                resolve(profile_url);
+                if (username_response.users.length > 0) {
+                    userid = username_response.users[0].user.username;
+                    profile_url = 'https://www.instagram.com/' + userid + '/?__a=1';
+                    resolve(profile_url);
+                }
+                else {
+                    resolve("")
+                }
             })
         })
     });
