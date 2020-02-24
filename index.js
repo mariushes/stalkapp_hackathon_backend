@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 // const FB = require("FB");
 const queryString = require("query-string");
-const http = require("http");
+const https = require("https");
 
 // example request
 // http.get("<url>", function (http_response) {
