@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 // const FB = require("FB");
 const queryString = require("query-string");
-const http = require("http");
+const https = require("https");
 
 // example request
 // http.get("<url>", function (http_response) {
@@ -40,4 +40,22 @@ app.get('/api/:user_name', function (req, res) {
 // get the first result: title = data.query.pages[first_key].title
 // build the following url: http://wikipedia.com/wiki/<title>
 
-app.listen(3000);
+function wikipedia(searchString){
+    url = "https://en.wikipedia.org/w/api.php?action=query&format=json&generator=prefixsearch&gpssearch=" + searchString;
+    https.get(url, function (http_response) {
+    http_response.on("data", function (data) {
+        data = JSON.parse(data);
+        console.log(data);
+
+        first_key = Object.keys(data.query.pages)[0];
+        title = data.query.pages[first_key].title;
+        final_url="http://wikipedia.com/wiki/"+title;
+        // e.g. res.send(data)
+        process.stdout.write(final_url);
+    })
+});
+}
+
+wikipedia("ciorba");
+
+//app.listen(3000);
