@@ -21,8 +21,16 @@ function base_route(req, res) {
 
 app.get('/', base_route);
 
-app.get('/germany', function (req, res) {
-    res.send('Hallo Leute!')
+app.post('/api/photo', function (req, res) {
+    result = {};
+    wikipedia_promise = wikipedia("sarma");
+    wikipedia_promise.then(function (data) {
+        result["wikipedia"] = data;
+        wikipedia("sarma").then(function (data) {
+            result["data"] = data;
+            res.send(JSON.stringify(result));
+        })
+    });
 });
 
 
@@ -34,28 +42,20 @@ app.get('/api/:user_name', function (req, res) {
     // get the following data: .graphql.user.edge_owner_to_timeline_media
 });
 
-// wikipedia search:
-// https://en.wikipedia.org/w/api.php?action=query&format=json&generator=prefixsearch&gpssearch=<search string>
-// get pages keys: first_key = Object.keys(.query.pages)[0]
-// get the first result: title = data.query.pages[first_key].title
-// build the following url: http://wikipedia.com/wiki/<title>
 
-function wikipedia(searchString){
-    url = "https://en.wikipedia.org/w/api.php?action=query&format=json&generator=prefixsearch&gpssearch=" + searchString;
-    https.get(url, function (http_response) {
-    http_response.on("data", function (data) {
-        data = JSON.parse(data);
-        console.log(data);
+function wikipedia(searchString) {
+    return new Promise((resolve, reject) => {
+        url = "https://en.wikipedia.org/w/api.php?action=query&format=json&generator=prefixsearch&gpssearch=" + searchString;
+        https.get(url, function (http_response) {
+            http_response.on("data", function (data) {
+                data = JSON.parse(data);
 
-        first_key = Object.keys(data.query.pages)[0];
-        title = data.query.pages[first_key].title;
-        final_url="http://wikipedia.com/wiki/"+title;
-        // e.g. res.send(data)
-        process.stdout.write(final_url);
-    })
-});
+                first_key = Object.keys(data.query.pages)[0];
+                title = data.query.pages[first_key].title;
+                final_url = "http://wikipedia.com/wiki/" + title;
+                resolve(final_url)
+            })
+        });
+    });
 }
-
-wikipedia("ciorba");
-
-//app.listen(3000);
+app.listen(3000);
