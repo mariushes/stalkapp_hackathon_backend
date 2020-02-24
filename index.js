@@ -1,33 +1,17 @@
 const express = require('express');
 const app = express();
-// const FB = require("FB");
-const queryString = require("query-string");
 const https = require("https");
+const bodyParser = require('body-parser');
 
-// example request
-// http.get("<url>", function (http_response) {
-//     http_response.on("data", function (data) {
-//         // Do something with the data
-//         // e.g. res.send(data)
-//     })
-// });
-
-function base_route(req, res) {
-    console.log(req.query.code);
-    console.log(req);
-    res.send(req.query.code)
-}
-
-
-app.get('/', base_route);
+app.use(bodyParser.json({ extended: true }));
 
 app.post('/api/photo', function (req, res) {
     result = {};
-    wikipedia_promise = wikipedia("sarma");
-    wikipedia_promise.then(function (data) {
-        result["wikipedia"] = data;
-        wikipedia("sarma").then(function (data) {
-            result["data"] = data;
+    image_recognition(req.body.photo_url).then(function (data) {
+        console.log(data.responses[0]);
+        object_in_image = data.responses[0].labelAnnotations[0].description;
+        wikipedia(object_in_image).then(function (data) {
+            result["wikipedia"] = data;
             res.send(JSON.stringify(result));
         })
     });
@@ -42,6 +26,60 @@ app.get('/api/:user_name', function (req, res) {
     // get the following data: .graphql.user.edge_owner_to_timeline_media
 });
 
+
+function image_recognition(image_url) {
+    return new Promise((resolve, reject) => {
+        to_be_sent = {
+            "requests": [
+                {
+                    "image": {
+                        "source": {
+                            "imageUri":
+                            image_url
+                        }
+                    },
+                    "features": [
+                        {
+                            "type": "LABEL_DETECTION",
+                            "maxResults": 1
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var postData = JSON.stringify(to_be_sent);
+
+        var options = {
+            hostname: 'vision.googleapis.com',
+            port: 443,
+            path: '/v1/images:annotate?key=AIzaSyBp3kyqBb42aE9Ca-70d6jPPd7QybEBzWE',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': postData.length
+            }
+        };
+
+        var req = https.request(options, (res) => {
+            buffer = "";
+            res.on('data', (data) => {
+                buffer = buffer + data;
+            });
+
+            res.on('end', (data) => {
+                resolve(JSON.parse(buffer));
+            });
+        });
+
+        req.on('error', (e) => {
+            console.error(e);
+        });
+
+        req.write(postData);
+        req.end();
+    });
+}
 
 function wikipedia(searchString) {
     return new Promise((resolve, reject) => {
@@ -58,4 +96,5 @@ function wikipedia(searchString) {
         });
     });
 }
+
 app.listen(3000);
