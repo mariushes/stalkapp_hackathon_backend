@@ -1,14 +1,15 @@
 const express = require('express');
 const app = express();
+
 const https = require("https");
 const bodyParser = require('body-parser');
+
 
 app.use(bodyParser.json({ extended: true }));
 
 app.post('/api/photo', function (req, res) {
     result = {};
     image_recognition(req.body.photo_url).then(function (data) {
-        console.log(data.responses[0]);
         object_in_image = data.responses[0].labelAnnotations[0].description;
         wikipedia(object_in_image).then(function (data) {
             result["wikipedia"] = data;
@@ -19,13 +20,52 @@ app.post('/api/photo', function (req, res) {
 
 
 app.get('/api/:user_name', function (req, res) {
-    // search for the user name
-    // url: https://www.instagram.com/web/search/topsearch/?context=blended&query=<user name
-    // get the first user's username
-    // build url: https://www.instagram.com/<username>?__a=1
-    // get the following data: .graphql.user.edge_owner_to_timeline_media
+    search_instagram(req.params.user_name).then(function (profile_url) {
+        get_instagram_pictures(profile_url).then(function (instagram_data) {
+            res.send(JSON.stringify({"result": instagram_data}));
+        })
+    });
 });
 
+function get_instagram_pictures(profile_url) {
+    return new Promise((resolve, reject) => {
+        https.get(profile_url, function (http_response) {
+            var body = "";
+            http_response.on("data", function (data) {
+                body = body + data;
+            });
+            http_response.on("end", function (data) {
+                const profile_response = JSON.parse(body);
+                result = [];
+                edges = profile_response.graphql.user.edge_owner_to_timeline_media.edges;
+                for (i = 0; i <= (5 <= edges.length ? 5 : edges.length); i++) {
+                    result.push(edges[i].node.display_url);
+                }
+
+                resolve(result);
+            })
+        })
+    });
+}
+
+function search_instagram(username) {
+    return new Promise((resolve, reject) => {
+        var userid_url = "https://www.instagram.com/web/search/topsearch/?context=blended&query=" + username;
+        https.get(userid_url, function (http_response) {
+            var body = "";
+            http_response.on("data", function (data) {
+                body = body + data;
+            });
+            http_response.on("end", function (data) {
+
+                const username_response = JSON.parse(body);
+                userid = username_response.users[0].user.username;
+                profile_url = 'https://www.instagram.com/' + userid + '/?__a=1';
+                resolve(profile_url);
+            })
+        })
+    });
+}
 
 function image_recognition(image_url) {
     return new Promise((resolve, reject) => {
