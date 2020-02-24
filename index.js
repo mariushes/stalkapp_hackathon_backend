@@ -45,7 +45,7 @@ function wikipedia(searchString){
     https.get(url, function (http_response) {
     http_response.on("data", function (data) {
         data = JSON.parse(data);
-        console.log(data);
+        //console.log(data);
 
         first_key = Object.keys(data.query.pages)[0];
         title = data.query.pages[first_key].title;
@@ -56,6 +56,56 @@ function wikipedia(searchString){
 });
 }
 
-wikipedia("ciorba");
+function image_recognition(image_url){
+    to_be_sent={ "requests":[
+        {
+            "image":{
+                "source":{
+                    "imageUri":
+                        image_url
+                }
+            },
+            "features":[
+                {
+                    "type":"OBJECT_LOCALIZATION",
+                    "maxResults":1
+                }
+            ]
+        }
+    ]}
+
+    var postData = JSON.stringify(to_be_sent);
+
+    var options = {
+        hostname: 'vision.googleapis.com',
+        port: 443,
+        path: '/v1/images:annotate?key=AIzaSyBp3kyqBb42aE9Ca-70d6jPPd7QybEBzWE',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': postData.length
+        }
+    };
+
+    var req = https.request(options, (res) => {
+        console.log('statusCode:', res.statusCode);
+        console.log('headers:', res.headers);
+
+        res.on('data', (d) => {
+            process.stdout.write(d);
+        });
+    });
+
+    req.on('error', (e) => {
+        console.error(e);
+    });
+
+    req.write(postData);
+    req.end();
+}
+
+image_recognition("https://assets.biggreenegg.eu/app/uploads/2018/06/28115815/topimage-pizza-special17-800x500.jpg")
+
+//wikipedia("ciorba");
 
 //app.listen(3000);
