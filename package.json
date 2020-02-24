@@ -1,0 +1,26 @@
+{
+  "name": "stalkapp_backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "facebook-sdk": "^0.3.3",
+    "nodemon": "^2.0.2",
+    "query-string": "^6.11.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mariushes/stalkapp_hackathon_backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mariushes/stalkapp_hackathon_backend/issues"
+  },
+  "homepage": "https://github.com/mariushes/stalkapp_hackathon_backend#readme"
+}
