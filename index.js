@@ -7,12 +7,9 @@ const app = express();
 app.use(bodyParser.json({extended: true}));
 
 
-const corsOptions = {
-    origin: '*',
-    methods: ["GET", "POST", "HEAD", "OPTIONS"]
-};
+app.options('*', cors());
 
-app.post('/api/photo', cors(corsOptions), function (req, res) {
+app.post('/api/photo', cors(), function (req, res) {
     try {
         result = {};
         image_recognition(req.body.photo_url).then(function (data) {
@@ -29,7 +26,7 @@ app.post('/api/photo', cors(corsOptions), function (req, res) {
 });
 
 
-app.get('/api/search/:user_name', cors(corsOptions), function (req, res) {
+app.get('/api/search/:user_name', cors(), function (req, res) {
     try {
         search_instagram(req.params.user_name).then(function (profile_url) {
             get_instagram_pictures(profile_url).then(function (instagram_data) {
