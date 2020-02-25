@@ -50,11 +50,15 @@ function get_instagram_pictures(profile_url) {
                 const profile_response = JSON.parse(body);
                 result = [];
                 edges = profile_response.graphql.user.edge_owner_to_timeline_media.edges;
-                for (i = 0; i <= (5 <= edges.length ? 5 : edges.length); i++) {
-                    result.push(edges[i].node.display_url);
+                try {
+                    for (i = 0; i <= (5 <= edges.length ? 5 : edges.length); i++) {
+                        result.push(edges[i].node.display_url);
+                    }
+                    resolve(result);
+                } catch (e) {
+                    console.log(e);
+                    resolve([]);
                 }
-
-                resolve(result);
             })
         })
     });
